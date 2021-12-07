@@ -1,5 +1,5 @@
 #!/usr/bin/python
-"""Hyperion Constants."""
+"""HyperHDR Constants."""
 
 KEY_ACCEPT = "accept"
 KEY_ACTIVE = "active"
@@ -22,7 +22,7 @@ KEY_EFFECT = "effect"
 KEY_EFFECTS = "effects"
 KEY_ENABLED = "enabled"
 KEY_FRIENDLY_NAME = "friendly_name"
-KEY_HYPERION = "hyperion"
+KEY_HYPERHDR = "hyperhdr"
 KEY_LED_MAPPING = "imageToLedMapping"
 KEY_LED_MAPPING_TYPE = "imageToLedMappingType"
 KEY_ID = "id"
@@ -78,7 +78,7 @@ KEY_VISIBLE = "visible"
 KEY_VIDEOMODES = ["2D", "3DSBS", "3DTAB"]
 
 # ComponentIDs from:
-# https://docs.hyperion-project.org/en/json/Control.html#components-ids-explained
+# https://docs.hyperhdr-project.org/en/json/Control.html#components-ids-explained
 KEY_COMPONENTID = "componentId"
 KEY_COMPONENTID_ALL = "ALL"
 KEY_COMPONENTID_COLOR = "COLOR"
@@ -91,6 +91,7 @@ KEY_COMPONENTID_BOBLIGHTSERVER = "BOBLIGHTSERVER"
 KEY_COMPONENTID_GRABBER = "GRABBER"
 KEY_COMPONENTID_LEDDEVICE = "LEDDEVICE"
 KEY_COMPONENTID_V4L = "V4L"
+KEY_COMPONENTID_HDR = "HDR"
 
 KEY_COMPONENTID_EXTERNAL_SOURCES = [
     KEY_COMPONENTID_BOBLIGHTSERVER,
@@ -98,7 +99,7 @@ KEY_COMPONENTID_EXTERNAL_SOURCES = [
     KEY_COMPONENTID_V4L,
 ]
 
-# Maps between Hyperion API component names to Hyperion UI names.
+# Maps between HyperHDR API component names to HyperHDR UI names.
 KEY_COMPONENTID_TO_NAME = {
     KEY_COMPONENTID_ALL: "All",
     KEY_COMPONENTID_SMOOTHING: "Smoothing",
@@ -108,6 +109,7 @@ KEY_COMPONENTID_TO_NAME = {
     KEY_COMPONENTID_GRABBER: "Platform Capture",
     KEY_COMPONENTID_LEDDEVICE: "LED Device",
     KEY_COMPONENTID_V4L: "USB Capture",
+    KEY_COMPONENTID_HDR: "HDR Tone Mapping",
 }
 KEY_COMPONENTID_FROM_NAME = {
     name: component for component, name in KEY_COMPONENTID_TO_NAME.items()
@@ -117,6 +119,6 @@ DEFAULT_INSTANCE = 0
 DEFAULT_CONNECTION_RETRY_DELAY_SECS = 30
 DEFAULT_TIMEOUT_SECS = 5
 DEFAULT_REQUEST_TOKEN_TIMEOUT_SECS = 180
-DEFAULT_ORIGIN = "hyperion-py"
+DEFAULT_ORIGIN = "hyperhdr-py"
 DEFAULT_PORT_JSON = 19444
 DEFAULT_PORT_UI = 8090
