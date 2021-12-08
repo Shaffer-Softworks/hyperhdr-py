@@ -16,7 +16,7 @@
 <img src="https://github.com/mjoshd/hyperhdr-py/blob/main/images/hyperhdrlogo.png?raw=true"
      alt="HyperHDR logo"
      width="160px"
-     align="center"
+     align="left"
      style="float: left;" />
 
 ## Library
