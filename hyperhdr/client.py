@@ -23,7 +23,6 @@ from typing import (
     Dict,
     Iterable,
     Mapping,
-    Type,
     Union,
     cast,
 )
@@ -92,9 +91,8 @@ class HyperHDRClient:
         self,
         host: str,
         port: int = const.DEFAULT_PORT_JSON,
-        default_callback: Union[HyperHDRCallback, Iterable[HyperHDRCallback]]
-        | None = None,
-        callbacks: Mapping[str, Union[HyperHDRCallback, Iterable[HyperHDRCallback]]]
+        default_callback: HyperHDRCallback | Iterable[HyperHDRCallback] | None = None,
+        callbacks: Mapping[str, HyperHDRCallback | Iterable[HyperHDRCallback]]
         | None = None,
         token: str | None = None,
         instance: int = const.DEFAULT_INSTANCE,
@@ -153,7 +151,7 @@ class HyperHDRClient:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
@@ -177,7 +175,7 @@ class HyperHDRClient:
     @classmethod
     def _set_or_add_callbacks(
         cls,
-        callbacks: Union[HyperHDRCallback, Iterable[HyperHDRCallback]] | None,
+        callbacks: HyperHDRCallback | Iterable[HyperHDRCallback] | None,
         add: bool,
         target: list[HyperHDRCallback],
     ) -> None:
@@ -194,7 +192,7 @@ class HyperHDRClient:
     @classmethod
     def _remove_callbacks(
         cls,
-        callbacks: Union[HyperHDRCallback, Iterable[HyperHDRCallback]],
+        callbacks: HyperHDRCallback | Iterable[HyperHDRCallback],
         target: list[HyperHDRCallback],
     ) -> None:
         """Set or add a single or list of callbacks."""
@@ -209,8 +207,7 @@ class HyperHDRClient:
 
     def set_callbacks(
         self,
-        callbacks: Mapping[str, Union[HyperHDRCallback, Iterable[HyperHDRCallback]]]
-        | None,
+        callbacks: Mapping[str, HyperHDRCallback | Iterable[HyperHDRCallback]] | None,
     ) -> None:
         """Set update callbacks."""
         if not callbacks:
@@ -223,7 +220,7 @@ class HyperHDRClient:
 
     def add_callbacks(
         self,
-        callbacks: Mapping[str, Union[HyperHDRCallback, Iterable[HyperHDRCallback]]],
+        callbacks: Mapping[str, HyperHDRCallback | Iterable[HyperHDRCallback]],
     ) -> None:
         """Add update callbacks."""
         if not callbacks:
@@ -235,7 +232,7 @@ class HyperHDRClient:
 
     def remove_callbacks(
         self,
-        callbacks: Mapping[str, Union[HyperHDRCallback, Iterable[HyperHDRCallback]]],
+        callbacks: Mapping[str, HyperHDRCallback | Iterable[HyperHDRCallback]],
     ) -> None:
         """Add update callbacks."""
         if not callbacks:
@@ -247,7 +244,7 @@ class HyperHDRClient:
 
     def set_default_callback(
         self,
-        default_callback: Union[HyperHDRCallback, Iterable[HyperHDRCallback]] | None,
+        default_callback: HyperHDRCallback | Iterable[HyperHDRCallback] | None,
     ) -> None:
         """Set the default callbacks."""
         HyperHDRClient._set_or_add_callbacks(
@@ -256,7 +253,7 @@ class HyperHDRClient:
 
     def add_default_callback(
         self,
-        default_callback: Union[HyperHDRCallback, Iterable[HyperHDRCallback]],
+        default_callback: HyperHDRCallback | Iterable[HyperHDRCallback],
     ) -> None:
         """Set the default callbacks."""
         HyperHDRClient._set_or_add_callbacks(
@@ -265,7 +262,7 @@ class HyperHDRClient:
 
     def remove_default_callback(
         self,
-        default_callback: Union[HyperHDRCallback, Iterable[HyperHDRCallback]],
+        default_callback: HyperHDRCallback | Iterable[HyperHDRCallback],
     ) -> None:
         """Set the default callbacks."""
         HyperHDRClient._remove_callbacks(default_callback, self._default_callback)
@@ -313,6 +310,16 @@ class HyperHDRClient:
     def client_state(self) -> dict[str, Any]:
         """Return client state."""
         return self._client_state.get_all()
+
+    @property
+    def host(self) -> str:
+        """Return host ip."""
+        return self._host
+
+    @property
+    def remote_url(self) -> str:
+        """Return remote control URL."""
+        return f"http://{self._host}:{const.DEFAULT_PORT_UI}/#remote"
 
     async def async_client_connect(self) -> bool:
         """Connect to the HyperHDR server."""
@@ -813,7 +820,7 @@ class HyperHDRClient:
             self._timeout_secs = timeout_secs
 
         def _extract_timeout_secs(
-            self, hyperhdr_client: "HyperHDRClient", data: dict[str, Any]
+            self, hyperhdr_client: HyperHDRClient, data: dict[str, Any]
         ) -> float:
             """Return the timeout value for a call.
 
@@ -840,7 +847,7 @@ class HyperHDRClient:
             # The receive task should never be executing a call that uses the
             # AwaitResponseWrapper (as the response is itself handled by the receive
             # task, i.e. partial deadlock). This assertion defends against programmer
-            # error in development of the client iself.
+            # error in development of the client itself.
             assert asyncio.current_task() != hyperhdr_client._receive_task
 
             tan = await hyperhdr_client._reserve_tan_slot(kwargs.get(const.KEY_TAN))
@@ -856,8 +863,8 @@ class HyperHDRClient:
             return response
 
         def __get__(
-            self, instance: "HyperHDRClient", instancetype: Type["HyperHDRClient"]
-        ) -> "functools.partial[Coroutine[Any, Any, dict[str, Any] | None]]":
+            self, instance: HyperHDRClient, instancetype: type[HyperHDRClient]
+        ) -> functools.partial[Coroutine[Any, Any, dict[str, Any] | None]]:
             """Return a partial call that uses the correct 'self'."""
             # Need to ensure __call__ receives the 'correct' outer
             # 'self', which is 'instance' in this function.
@@ -1500,9 +1507,8 @@ class ThreadedHyperHDRClient(threading.Thread):
         self,
         host: str,
         port: int = const.DEFAULT_PORT_JSON,
-        default_callback: Union[HyperHDRCallback, Iterable[HyperHDRCallback]]
-        | None = None,
-        callbacks: dict[str, Union[HyperHDRCallback, Iterable[HyperHDRCallback]]]
+        default_callback: HyperHDRCallback | Iterable[HyperHDRCallback] | None = None,
+        callbacks: dict[str, HyperHDRCallback | Iterable[HyperHDRCallback]]
         | None = None,
         token: str | None = None,
         instance: int = const.DEFAULT_INSTANCE,
