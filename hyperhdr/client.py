@@ -5,6 +5,7 @@ import asyncio
 import collections
 import collections.abc
 import copy
+import errno
 import functools
 import inspect
 import json
@@ -461,7 +462,11 @@ class HyperHDRClient:
         try:
             self._writer.write(output)
             await self._writer.drain()
-        except ConnectionError as exc:
+        except (ConnectionError, OSError) as exc:
+            if isinstance(exc, OSError) and exc.errno not in (
+                errno.EHOSTUNREACH, errno.ENETUNREACH, errno.ECONNREFUSED, errno.ETIMEDOUT, errno.EHOSTDOWN
+            ):
+                raise
             _LOGGER.warning(
                 "Could not write data for HyperHDR (%s): %s",
                 self._host_port,
@@ -483,7 +488,11 @@ class HyperHDRClient:
         try:
             future_resp = self._reader.readline()
             resp = await asyncio.wait_for(future_resp, timeout=timeout_secs)
-        except ConnectionError:
+        except (ConnectionError, OSError) as exc:
+            if isinstance(exc, OSError) and exc.errno not in (
+                    errno.EHOSTUNREACH, errno.ENETUNREACH, errno.ECONNREFUSED, errno.ETIMEDOUT, errno.EHOSTDOWN
+            ):
+                raise
             _LOGGER.warning("Connection to HyperHDR lost (%s) ...", self._host_port)
             await self._async_client_disconnect_internal()
             return None
