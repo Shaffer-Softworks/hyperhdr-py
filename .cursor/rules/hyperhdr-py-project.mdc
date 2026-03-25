@@ -1,0 +1,44 @@
+---
+description: HyperHDR Python library project context and conventions
+alwaysApply: true
+---
+
+# hyperhdr-py Project Context
+
+## Overview
+
+Python client library for HyperHDR ambient lighting servers. Published to PyPI as `hyperhdr-py-sickkick`. Forked from `hyperion-py` by Dermot Duffy.
+
+## Repositories
+
+- **hyperhdr-py** (`sickkick/hyperhdr-py`): The Python library (this repo)
+- **hyperhdr-ha** (`mjoshd/hyperhdr-ha`): Home Assistant custom integration that consumes this library
+
+## Architecture
+
+- `hyperhdr/client.py`: JSON TCP API client (`HyperHDRClient`), port 19444
+- `hyperhdr/stream.py`: WebSocket LED streaming (`HyperHDRLedColorsStream`, `HyperHDRLedGradientStream`), port 8090 at `/json-rpc`
+- `hyperhdr/const.py`: Protocol constants and keys
+- `hyperhdr/debug_hyperhdr.py`: Debug/diagnostic script, configured via environment variables
+- `examples/stream_leds.py`: CLI example for streaming
+
+## Authentication Model
+
+- **Token auth**: `{"command": "authorize", "subcommand": "login", "token": "..."}` 
+- **Admin password auth**: `{"command": "authorize", "subcommand": "login", "password": "..."}`
+- Stream classes support both token and admin_password, with password as fallback when token fails
+- Three WebSocket auth modes: `json` (in-band), `query` (URL param), `header` (HTTP header)
+- `auth_failed` flag distinguishes genuine auth failures from idle LEDs (no frames)
+
+## Publishing
+
+- Build system: Poetry (`pyproject.toml`)
+- PyPI publishing via GitHub Actions (`python-publish.yml`) using `PYPI_API_TOKEN` secret
+- Triggers on GitHub release publication or `v*` tag push
+- Optional extras: `[stream]` (aiohttp), `[stream-jpeg]` (aiohttp + Pillow)
+
+## Git Conventions
+
+- Never add `Co-authored-by` trailers for AI agents
+- Author: `Michael Shaffer <sickkick40@gmail.com>`
+- Branch naming: descriptive (e.g., `Stream-API`, `pypi-publishing`)
