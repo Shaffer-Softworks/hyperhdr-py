@@ -1819,7 +1819,11 @@ class HyperHDRClient:
     async def async_send_benchmark(self, *_: Any, **kwargs: Any) -> bool:
         """Request a performance benchmark."""
         data = HyperHDRClient._set_data(
-            kwargs, hard={const.KEY_COMMAND: const.KEY_BENCHMARK}
+            kwargs, 
+            hard={
+                const.KEY_COMMAND: const.KEY_BENCHMARK,
+                const.KEY_SUBCOMMAND: "ping",
+            }
         )
         return await self._async_send_json(data)
 
