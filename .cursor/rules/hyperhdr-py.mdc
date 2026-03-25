@@ -1,0 +1,12 @@
+---
+description: hyperhdr-py project facts (package name, repo, docs)
+alwaysApply: true
+---
+
+# hyperhdr-py
+
+- **PyPI**: `hyperhdr-py-sickkick` — **import**: `hyperhdr` (not the PyPI name).
+- **Repo**: https://github.com/sickkick/hyperhdr-py — use this for README/raw links, not legacy fork URLs.
+- **Scope**: Python client for HyperHDR JSON API; extends hyperion-py. API shapes: https://docs.hyperhdr-project.org/en/json/ — methods live in `hyperhdr/client.py` as `async_*`.
+- **Streaming**: `hyperhdr.stream`; optional extras `[stream]` / `[stream-jpeg]`.
+- **Tooling**: Poetry, pytest. Longer context: **AGENTS.md**.
