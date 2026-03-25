@@ -495,7 +495,7 @@ class HyperHDRClient:
         try:
             future_resp = self._reader.readline()
             resp = await asyncio.wait_for(future_resp, timeout=timeout_secs)
-        except ConnectionError as exc:
+        except ConnectionError:
             _LOGGER.warning("Connection to HyperHDR lost (%s) ...", self._host_port)
             await self._async_client_disconnect_internal()
             return None
