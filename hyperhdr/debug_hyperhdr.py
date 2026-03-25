@@ -259,7 +259,7 @@ async def main() -> None:
     stream_port = int(
         os.environ.get("HYPERHDR_STREAM_PORT", str(const.DEFAULT_PORT_UI))
     )
-    token = os.environ.get("HYPERHDR_TOKEN", "66e9cced-23e9-471b-afe2-bf23fae41db4") #token of hyperhdr
+    token = os.environ.get("HYPERHDR_TOKEN", "5c960d33-7898-4116-b327-279a443e5063") #token of hyperhdr
     admin_token = os.environ.get("HYPERHDR_ADMIN_TOKEN")
     admin_password = os.environ.get("HYPERHDR_ADMIN_PASSWORD")
     auth_token = admin_token or token or None
@@ -317,6 +317,9 @@ async def main() -> None:
                     "admin endpoints and as stream auth fallback."
                 )
         await hc.async_get_serverinfo()
+
+        #await hc.async_send_sysinfo()
+        await hc.async_send_benchmark()
 
         get_config = _env_bool(
             "HYPERHDR_GET_CONFIG",
