@@ -328,7 +328,7 @@ class HyperHDRClient:
         if self._writer:
             return True
 
-        future_streams = asyncio.open_connection(self._host, self._port)
+        future_streams = asyncio.open_connection(self._host, self._port, limit=2**18)
         try:
             self._reader, self._writer = await asyncio.wait_for(
                 future_streams, timeout=self._timeout_secs
