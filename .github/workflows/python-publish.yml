@@ -3,6 +3,9 @@ name: Upload Python Package
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: read
@@ -33,13 +36,6 @@ jobs:
   pypi-publish:
     runs-on: ubuntu-22.04
     needs: [release-build]
-    permissions:
-      contents: read
-      id-token: write
-
-    environment:
-      name: pypi
-      # url: https://pypi.org/p/YOURPROJECT
 
     steps:
       - name: Retrieve release distributions
@@ -49,6 +45,9 @@ jobs:
           path: dist/
 
       - name: Publish release distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          pip install twine
+          twine upload dist/*
