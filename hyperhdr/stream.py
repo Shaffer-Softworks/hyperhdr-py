@@ -140,6 +140,9 @@ class _HyperHDRLedStreamBase:
         if self._stream_task and not self._stream_task.done():
             return
         self._stopped.clear()
+        # Allow a fresh start after a previous permanent auth failure.
+        self._auth_failed = False
+        self._auth_warning_logged = False
         self._stream_task = asyncio.create_task(self._stream_worker())
 
     async def stop(self) -> None:
@@ -202,7 +205,15 @@ class _HyperHDRLedStreamBase:
         """Log a stream authorization error once."""
         if self._auth_warning_logged:
             return
-        if self._token:
+        if self._token and self._admin_password:
+            _LOGGER.warning(
+                "HyperHDR %s stream authorization failed for %s; "
+                "check the configured token or admin password. Error: %s",
+                self._label,
+                self._host,
+                error_text,
+            )
+        elif self._token:
             _LOGGER.warning(
                 "HyperHDR %s stream authorization failed for %s; "
                 "check the configured token. Error: %s",
@@ -210,10 +221,19 @@ class _HyperHDRLedStreamBase:
                 self._host,
                 error_text,
             )
+        elif self._admin_password:
+            _LOGGER.warning(
+                "HyperHDR %s stream authorization failed for %s; "
+                "admin password was rejected (wrong password, or shorter "
+                "than 8 characters). Error: %s",
+                self._label,
+                self._host,
+                error_text,
+            )
         else:
             _LOGGER.warning(
-                "HyperHDR %s stream requires authorization but no token is "
-                "configured for %s. Error: %s",
+                "HyperHDR %s stream requires authorization but no token or "
+                "admin password is configured for %s. Error: %s",
                 self._label,
                 self._host,
                 error_text,
@@ -367,25 +387,14 @@ class _HyperHDRLedStreamBase:
             ):
                 return True
 
-            if not self._auth_warning_logged:
-                _LOGGER.warning(
-                    "HyperHDR %s stream authorization failed for %s; "
-                    "check the configured token or admin password",
-                    self._label,
-                    self._host,
-                )
-                self._auth_warning_logged = True
-            self._auth_failed = True
+            self._log_auth_error("Token and admin password login failed")
             return False
 
         # --- Attempt 2: no token — try admin password directly ---
         if self._admin_password:
             if await self._try_password_login(ws):
                 return True
-            # Password login failed.
-            self._log_auth_error(
-                "Admin password login failed; check HYPERHDR_ADMIN_PASSWORD"
-            )
+            self._log_auth_error("Admin password login failed")
             return False
 
         # --- Attempt 3: no credentials — check if auth is even required ---
@@ -404,15 +413,7 @@ class _HyperHDRLedStreamBase:
         if not required_resp.get(const.KEY_SUCCESS, True):
             return True
         if required_resp.get(const.KEY_INFO, {}).get(const.KEY_REQUIRED, False):
-            if not self._auth_warning_logged:
-                _LOGGER.warning(
-                    "HyperHDR %s stream requires authorization but no token or "
-                    "admin password is configured for %s; stream disabled",
-                    self._label,
-                    self._host,
-                )
-                self._auth_warning_logged = True
-            self._auth_failed = True
+            self._log_auth_error("Authorization required")
             return False
         return True
 
@@ -555,6 +556,16 @@ class _HyperHDRLedStreamBase:
                         if self._ws_auth_mode == "json":
                             if not await self._authorize_ws(ws):
                                 await ws.close()
+                                # Permanent auth failure: do not reconnect until
+                                # start() is called again with new credentials.
+                                if self._auth_failed:
+                                    _LOGGER.debug(
+                                        "HyperHDR %s stream stopped after auth "
+                                        "failure for %s",
+                                        self._label,
+                                        self._host,
+                                    )
+                                    return
                                 continue
 
                         await ws.send_json(

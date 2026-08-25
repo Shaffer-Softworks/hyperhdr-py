@@ -96,8 +96,12 @@ KEY_SMOOTHING_UPDATE_FREQUENCY = "updateFrequency"
 KEY_SMOOTHING_DECAY = "decay"
 KEY_SMOOTHING_CONTINUOUS_OUTPUT = "continuousOutput"
 
-# Average color calculation (v20)
-KEY_AVERAGE_COLOR = "calculate-colors"
+# Average color (HyperHDR v20+)
+# Prefer current-state / average-color. calculate-colors is not in the HyperHDR
+# JSON command enum and fails schema validation on v21+.
+KEY_CURRENT_STATE = "current-state"
+KEY_AVERAGE_COLOR_SUBCOMMAND = "average-color"
+KEY_AVERAGE_COLOR = "calculate-colors"  # deprecated legacy alias; do not send
 
 # HDR Tone Mapping (v21)
 KEY_HDR_TONE_MAPPING = "hdr"
@@ -134,7 +138,9 @@ KEY_LOAD_DB = "loadDB"
 KEY_DISCOVER = "discover"
 KEY_SERVICES = "services"
 
-# Current LED colors (v20)
+# Legacy / invalid ledcolors subcommand used by older clients.
+# HyperHDR schema-ledcolors.json only allows ledstream-*, imagestream-*, testled.
+# Do not use for average color — use current-state / average-color instead.
 KEY_CURRENT_COLORS = "currentColors"
 
 # Infinite Color Engine (v22)
