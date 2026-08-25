@@ -1643,13 +1643,24 @@ class HyperHDRClient:
 
     # ==================================================================================
     # ** Average Color (v20+) **
-    # Calculate the average color of the current LED output.
+    # HyperHDR: {"command":"current-state","subcommand":"average-color","instance":N}
+    # (calculate-colors is not a valid top-level command on HyperHDR.ng / v21+.)
     # ==================================================================================
 
     async def async_send_get_average_color(self, *_: Any, **kwargs: Any) -> bool:
-        """Request the average color of current LED output."""
+        """Request the average color of current LED output.
+
+        Uses ``current-state`` / ``average-color``. ``instance`` defaults to this
+        client's target instance and may be overridden via kwargs.
+        """
+        instance = kwargs.pop(const.KEY_INSTANCE, self._target_instance)
         data = HyperHDRClient._set_data(
-            kwargs, hard={const.KEY_COMMAND: const.KEY_AVERAGE_COLOR}
+            kwargs,
+            hard={
+                const.KEY_COMMAND: const.KEY_CURRENT_STATE,
+                const.KEY_SUBCOMMAND: const.KEY_AVERAGE_COLOR_SUBCOMMAND,
+                const.KEY_INSTANCE: instance,
+            },
         )
         return await self._async_send_json(data)
 
@@ -1819,7 +1830,14 @@ class HyperHDRClient:
     # ==================================================================================
 
     async def async_send_get_current_colors(self, *_: Any, **kwargs: Any) -> bool:
-        """Request the current LED colors."""
+        """Request current LED colors via ledcolors/currentColors.
+
+        .. warning::
+            ``currentColors`` is **not** a valid ``ledcolors`` subcommand in
+            HyperHDR's JSON schema (v21+). Prefer
+            :meth:`async_get_average_color` for average RGB, or LED
+            stream start/stop subcommands for live data.
+        """
         data = HyperHDRClient._set_data(
             kwargs,
             hard={
