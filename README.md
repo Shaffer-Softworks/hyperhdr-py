@@ -4,7 +4,7 @@ A Python library for controlling [HyperHDR](https://github.com/awawa-dev/HyperHD
 
 This library builds on [Dermot Duffy](https://github.com/dermotduffy)’s [hyperion-py](https://github.com/dermotduffy/hyperion-py).
 
-<img src="https://github.com/sickkick/hyperhdr-py/blob/main/images/hyperhdrlogo.png?raw=true"
+<img src="https://github.com/Shaffer-Softworks/hyperhdr-py/blob/main/images/hyperhdrlogo.png?raw=true"
      alt="HyperHDR logo"
      width="160"
      align="left" />
@@ -107,7 +107,7 @@ See [`examples/stream_leds.py`](examples/stream_leds.py) for a runnable script.
 
 ## API and data model
 
-Request and response shapes follow the [HyperHDR JSON API](https://docs.hyperhdr-project.org/en/json/). Async methods on `HyperHDRClient` are named `async_*` and match that API; see [`hyperhdr/client.py`](https://github.com/sickkick/hyperhdr-py/blob/main/hyperhdr/client.py) for the full list.
+Request and response shapes follow the [HyperHDR JSON API](https://docs.hyperhdr-project.org/en/json/). Async methods on `HyperHDRClient` are named `async_*` and match that API; see [`hyperhdr/client.py`](https://github.com/Shaffer-Softworks/hyperhdr-py/blob/main/hyperhdr/client.py) for the full list.
 
 For threaded use without `asyncio`, use `ThreadedHyperHDRClient` (same method names without the `async_` prefix). After `start()`, call `wait_for_client_init()` before connecting.
 

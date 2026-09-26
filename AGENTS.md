@@ -15,7 +15,7 @@ Python client for **[HyperHDR](https://github.com/awawa-dev/HyperHDR)** ambient 
 
 ## Repository
 
-- **Canonical remote**: `https://github.com/sickkick/hyperhdr-py`
+- **Canonical remote**: `https://github.com/Shaffer-Softworks/hyperhdr-py` (also redirects from `sickkick/hyperhdr-py`)
 - Keep user-facing links (`README`, badges, raw images) consistent with this repo, not older forks.
 
 ## Layout

@@ -2,6 +2,13 @@
 .pytest_cache
 .cache
 
+# Accidental / local tooling dumps
+tools.yaml
+.poetry/
+
+# macOS
+.DS_Store
+
 # GITHUB Proposed Python stuff:
 *.py[cod]
 

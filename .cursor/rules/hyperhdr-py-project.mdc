@@ -11,8 +11,8 @@ Python client library for HyperHDR ambient lighting servers. Published to PyPI a
 
 ## Repositories
 
-- **hyperhdr-py** (`sickkick/hyperhdr-py`): The Python library (this repo)
-- **hyperhdr-ha** (`mjoshd/hyperhdr-ha`): Home Assistant custom integration that consumes this library
+- **hyperhdr-py** (`Shaffer-Softworks/hyperhdr-py`): The Python library (this repo; `sickkick/hyperhdr-py` redirects here)
+- **hyperhdr-ha** (`Shaffer-Softworks/hyperhdr-ha`): Home Assistant custom integration that consumes this library
 
 ## Architecture
 
