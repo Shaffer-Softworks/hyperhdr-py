@@ -121,6 +121,7 @@ class HyperHDRClient:
         self._raw_connection = raw_connection
 
         self._serverinfo: dict[str, Any] | None = None
+        self._smoothing_config: dict[str, Any] | None = None
 
         self._receive_task: asyncio.Task[None] | None = None
         self._maintenance_task: asyncio.Task[None] | None = None
@@ -1667,19 +1668,24 @@ class HyperHDRClient:
     async_get_average_color = AwaitResponseWrapper(async_send_get_average_color)
 
     # ==================================================================================
-    # ** Smoothing Control (v20+) **
-    # Update smoothing parameters dynamically.
+    # ** Smoothing Control **
+    # v22+: full parameters via config getconfig/setconfig.
+    # Legacy JSON-RPC ``smoothing`` command only accepts subcommand + time.
     # ==================================================================================
 
     @property
     def smoothing(self) -> dict[str, Any] | None:
-        """Return smoothing settings."""
-        return self._get_serverinfo_value(const.KEY_SMOOTHING)
+        """Return smoothing settings from serverinfo or cached config."""
+        serverinfo_smoothing = self._get_serverinfo_value(const.KEY_SMOOTHING)
+        if serverinfo_smoothing is not None:
+            return serverinfo_smoothing
+        return self._smoothing_config
 
     def _update_smoothing(self, smoothing: dict[str, Any]) -> None:
-        """Update smoothing settings."""
-        if self._serverinfo:
-            self._serverinfo[const.KEY_SMOOTHING] = smoothing
+        """Update cached smoothing settings and optional serverinfo mirror."""
+        self._smoothing_config = copy.deepcopy(smoothing)
+        if self._serverinfo is not None:
+            self._serverinfo[const.KEY_SMOOTHING] = copy.deepcopy(smoothing)
 
     @property
     def color_engine(self) -> dict[str, Any] | None:
@@ -1687,22 +1693,86 @@ class HyperHDRClient:
         return self._get_serverinfo_value(const.KEY_COLOR_ENGINE)
 
     async def async_send_set_smoothing(self, *_: Any, **kwargs: Any) -> bool:
-        """Set smoothing parameters.
+        """Set smoothing time via the legacy JSON-RPC ``smoothing`` command.
+
+        HyperHDR v22 validates this command against a narrow schema::
+
+            {"command": "smoothing", "subcommand": "all"|"single", "time": 25..5000}
+
+        For type, anti-flicker, continuous output, stiffness, damping, and other
+        config fields use :meth:`async_update_smoothing_config` instead.
 
         Parameters:
-            smoothingType: str - Type of smoothing interpolator
-                           (linear, exponential, yuv, hybridRgb, inertia)
-            time: int - Smoothing time in milliseconds
-            updateFrequency: int - Update frequency in Hz
-            decay: float - Decay value for inertia smoothing
-            continuousOutput: bool - Enable continuous LED output
+            time: int - Smoothing time in milliseconds (required)
+            subcommand: str - ``all`` (default) or ``single``
         """
+        time_ms = kwargs.pop(const.KEY_SMOOTHING_TIME, None)
+        if time_ms is None:
+            time_ms = kwargs.pop(const.KEY_SMOOTHING_TIME_MS, None)
+        if time_ms is None:
+            raise ValueError(
+                "The 'time' parameter is required for async_send_set_smoothing"
+            )
+        subcommand = kwargs.pop(
+            const.KEY_SUBCOMMAND, const.KEY_SMOOTHING_SUBCOMMAND_ALL
+        )
         data = HyperHDRClient._set_data(
-            kwargs, hard={const.KEY_COMMAND: const.KEY_SMOOTHING}
+            kwargs,
+            hard={
+                const.KEY_COMMAND: const.KEY_SMOOTHING,
+                const.KEY_SUBCOMMAND: subcommand,
+                const.KEY_SMOOTHING_TIME: int(time_ms),
+            },
         )
         return await self._async_send_json(data)
 
     async_set_smoothing = AwaitResponseWrapper(async_send_set_smoothing)
+
+    async def async_get_smoothing_config(self) -> dict[str, Any] | None:
+        """Fetch smoothing settings via authenticated config/getconfig.
+
+        Returns the ``smoothing`` object on success, or None if getconfig fails
+        or does not include smoothing. Caches the result on
+        :attr:`smoothing` / ``_smoothing_config``.
+        """
+        response = await self.async_get_config()
+        if not ResponseOK(response):
+            return None
+        assert response is not None
+        info = response.get(const.KEY_INFO) or {}
+        smoothing = info.get(const.KEY_SMOOTHING)
+        if not isinstance(smoothing, dict):
+            return None
+        self._update_smoothing(smoothing)
+        return copy.deepcopy(smoothing)
+
+    async def async_update_smoothing_config(
+        self, **fields: Any
+    ) -> dict[str, Any] | None:
+        """Merge-patch smoothing config and write via config/setconfig.
+
+        Reads the current smoothing object (cached or via getconfig), applies
+        ``fields``, then sends a full ``{"smoothing": {...}}`` fragment because
+        HyperHDR's schema uses ``additionalProperties: false``.
+
+        Returns the updated smoothing dict on success, otherwise None.
+        """
+        current = self._smoothing_config
+        if current is None:
+            current = await self.async_get_smoothing_config()
+        if current is None:
+            return None
+        merged = copy.deepcopy(current)
+        merged.update(fields)
+        set_resp = await self.async_set_config(config={const.KEY_SMOOTHING: merged})
+        if not ResponseOK(set_resp):
+            return None
+        # Re-read so defaults / server-side normalization are reflected.
+        refreshed = await self.async_get_smoothing_config()
+        if refreshed is not None:
+            return refreshed
+        self._update_smoothing(merged)
+        return copy.deepcopy(merged)
 
     # ==================================================================================
     # ** HDR Tone Mapping Control (v21+) **
@@ -1771,7 +1841,7 @@ class HyperHDRClient:
 
     # ==================================================================================
     # ** Config (v20+) **
-    # Fetch full configuration.
+    # Fetch / write configuration (admin authorization often required).
     # ==================================================================================
 
     async def async_send_get_config(self, *_: Any, **kwargs: Any) -> bool:
@@ -1786,6 +1856,27 @@ class HyperHDRClient:
         return await self._async_send_json(data)
 
     async_get_config = AwaitResponseWrapper(async_send_get_config)
+
+    async def async_send_set_config(self, *_: Any, **kwargs: Any) -> bool:
+        """Write a configuration fragment via config/setconfig.
+
+        Parameters:
+            config: dict - Fragment to merge (e.g. ``{"smoothing": {...}}``)
+        """
+        if const.KEY_CONFIG not in kwargs:
+            raise ValueError(
+                "The 'config' parameter is required for async_send_set_config"
+            )
+        data = HyperHDRClient._set_data(
+            kwargs,
+            hard={
+                const.KEY_COMMAND: const.KEY_CONFIG,
+                const.KEY_SUBCOMMAND: const.KEY_SET_CONFIG,
+            },
+        )
+        return await self._async_send_json(data)
+
+    async_set_config = AwaitResponseWrapper(async_send_set_config)
 
     # ==================================================================================
     # ** Config/Database Operations (v20+) **
