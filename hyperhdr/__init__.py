@@ -10,4 +10,4 @@ Supports HyperHDR v19 through v22+ including:
 - Infinite Color Engine support (v22+)
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.3"

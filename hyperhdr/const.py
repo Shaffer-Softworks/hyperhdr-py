@@ -90,11 +90,21 @@ KEY_VIDEOMODES = ["2D", "3DSBS", "3DTAB"]
 
 # New constants added in HyperHDR v20+
 KEY_SMOOTHING = "smoothing"
-KEY_SMOOTHING_TYPE = "smoothingType"
-KEY_SMOOTHING_TIME = "time"
+KEY_SMOOTHING_TYPE = "smoothingType"  # legacy RPC / serverinfo key
+KEY_SMOOTHING_TYPE_CONFIG = "type"  # v22 config schema key
+KEY_SMOOTHING_TIME = "time"  # legacy RPC key
+KEY_SMOOTHING_TIME_MS = "time_ms"  # v22 config schema key
 KEY_SMOOTHING_UPDATE_FREQUENCY = "updateFrequency"
-KEY_SMOOTHING_DECAY = "decay"
+KEY_SMOOTHING_DECAY = "decay"  # removed from v22 config schema
 KEY_SMOOTHING_CONTINUOUS_OUTPUT = "continuousOutput"
+KEY_SMOOTHING_ANTI_FLICKERING_FILTER = "antiFlickeringFilter"
+KEY_SMOOTHING_FACTOR = "smoothingFactor"
+KEY_SMOOTHING_STIFFNESS = "stiffness"
+KEY_SMOOTHING_DAMPING = "damping"
+KEY_SMOOTHING_Y_LIMIT = "y_limit"
+KEY_SMOOTHING_ENABLE = "enable"
+KEY_SMOOTHING_SUBCOMMAND_ALL = "all"
+KEY_SMOOTHING_SUBCOMMAND_SINGLE = "single"
 
 # Average color (HyperHDR v20+)
 # Prefer current-state / average-color. calculate-colors is not in the HyperHDR
@@ -131,6 +141,8 @@ KEY_BENCHMARK = "benchmark"
 # Config/Settings (v20+)
 KEY_CONFIG = "config"
 KEY_GET_CONFIG = "getconfig"
+KEY_SET_CONFIG = "setconfig"
+KEY_GET_SCHEMA = "getschema"
 KEY_SAVE_DB = "saveDB"
 KEY_LOAD_DB = "loadDB"
 
@@ -149,13 +161,30 @@ KEY_DEEP_COLOR = "deepColor"
 KEY_LINEAR_SRGB = "linearSrgb"
 KEY_COLOR_PRECISION = "colorPrecision"
 
-# Smoothing interpolators (v22)
+# Smoothing interpolators — legacy short names (pre-v22 serverinfo / docs)
 KEY_INTERPOLATOR = "interpolator"
 KEY_INTERPOLATOR_LINEAR = "linear"
 KEY_INTERPOLATOR_EXPONENTIAL = "exponential"
 KEY_INTERPOLATOR_YUV = "yuv"
 KEY_INTERPOLATOR_HYBRID_RGB = "hybridRgb"
 KEY_INTERPOLATOR_INERTIA = "inertia"
+
+# v22 config schema type enum (schema-smoothing.json)
+SMOOTHING_TYPE_STEPPER = "Stepper"
+SMOOTHING_TYPE_YUV_INTERPOLATOR = "YuvInterpolator"
+SMOOTHING_TYPE_RGB_INTERPOLATOR = "RgbInterpolator"
+SMOOTHING_TYPE_HYBRID_INTERPOLATOR = "HybridInterpolator"
+SMOOTHING_TYPE_HYBRID_RGB_INTERPOLATOR = "HybridRgbInterpolator"
+SMOOTHING_TYPE_EXPONENTIAL_INTERPOLATOR = "ExponentialInterpolator"
+
+SMOOTHING_TYPE_OPTIONS_V22 = (
+    SMOOTHING_TYPE_STEPPER,
+    SMOOTHING_TYPE_YUV_INTERPOLATOR,
+    SMOOTHING_TYPE_RGB_INTERPOLATOR,
+    SMOOTHING_TYPE_HYBRID_INTERPOLATOR,
+    SMOOTHING_TYPE_HYBRID_RGB_INTERPOLATOR,
+    SMOOTHING_TYPE_EXPONENTIAL_INTERPOLATOR,
+)
 
 # ComponentIDs from:
 # https://docs.hyperhdr-project.org/en/json/Control.html#components-ids-explained
@@ -206,7 +235,7 @@ HDR_MODE_OFF = 0
 HDR_MODE_ON = 1
 HDR_MODE_AUTO = 2  # Automatic tone mapping (v21)
 
-# Smoothing Types (v22+)
+# Legacy short smoothing type strings (pre-v22 / older clients)
 SMOOTHING_TYPE_LINEAR = "linear"
 SMOOTHING_TYPE_EXPONENTIAL = "exponential"
 SMOOTHING_TYPE_YUV = "yuv"
