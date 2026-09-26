@@ -18,21 +18,24 @@ This library builds on [Dermot Duffy](https://github.com/dermotduffy)’s [hyper
 - Support for HyperHDR v19 through v22+
 - Optional WebSocket LED color/gradient streaming (requires `aiohttp`)
 
-### New in v0.1.0 (HyperHDR v20–v22)
+### Notable APIs (v0.1–v0.2)
 
-- **Average color** — Average color of current LED output
-- **Smoothing control** — Adjust smoothing, including v22 interpolators
-- **HDR tone mapping** — Tone mapping mode and automatic detection (v21+)
-- **Service discovery** — Discover HyperHDR instances on the network
-- **Current LED colors** — Read colors being sent to LEDs
-- **Performance benchmarking** — Run server benchmarks
-- **Config management** — Save/load the configuration database
+- **Average color** — `async_get_average_color()` via `current-state` / `average-color` (v20+)
+- **Smoothing** — legacy time RPC (`async_set_smoothing`) plus v22 config helpers (`async_get_smoothing_config` / `async_update_smoothing_config`)
+- **Config set** — authenticated `async_set_config` for config fragments (v22+)
+- **HDR tone mapping** — mode and automatic detection (v21+)
+- **Service discovery** — discover HyperHDR instances on the network
+- **LED WebSocket streams** — `HyperHDRLedColorsStream` / `HyperHDRLedGradientStream` with token or admin-password auth
+- **Performance benchmarking** — run server benchmarks
+- **Config database** — save/load the configuration database
 
 ## Installation
 
 ```bash
 pip install hyperhdr-py-sickkick
 ```
+
+Current release: **0.2.3**.
 
 ## Quick start
 
@@ -53,19 +56,30 @@ async def main():
 asyncio.run(main())
 ```
 
+### Smoothing (HyperHDR v22)
+
+Use the legacy RPC only to change smoothing time. For type, anti-flicker, continuous output, and hybrid knobs, use the config helpers (admin auth required):
+
+```python
+# Time only (validated JSON-RPC)
+await hc.async_set_smoothing(time=150)
+
+# Full smoothing object via config/getconfig + config/setconfig
+await hc.async_update_smoothing_config(
+    type=const.SMOOTHING_TYPE_HYBRID_RGB_INTERPOLATOR,
+    time_ms=150,
+    antiFlickeringFilter=True,
+    continuousOutput=True,
+)
+```
+
 ## LED streaming (WebSocket)
 
 Install dependencies before using the stream helpers:
 
 ```bash
-pip install aiohttp
-```
-
-If you use `convert_to_jpeg=True`, install Pillow as well, or use the extras:
-
-```bash
 pip install "hyperhdr-py-sickkick[stream]"
-pip install "hyperhdr-py-sickkick[stream-jpeg]"
+pip install "hyperhdr-py-sickkick[stream-jpeg]"  # if convert_to_jpeg=True
 ```
 
 ```python

@@ -27,7 +27,7 @@ Python client for **[HyperHDR](https://github.com/awawa-dev/HyperHDR)** ambient 
 
 ## Documentation
 
-- **README.md** — quick start, install, streaming snippet, pointers to official API docs.
+- **README.md** — quick start, install, streaming / v22 smoothing snippets, pointers to official API docs.
 - **HyperHDR JSON API** — https://docs.hyperhdr-project.org/en/json/ (source of truth for request/response shapes).
 - Threaded wrapper: `ThreadedHyperHDRClient` (sync-style API, no `async_` prefix).
 
@@ -36,6 +36,10 @@ Python client for **[HyperHDR](https://github.com/awawa-dev/HyperHDR)** ambient 
 - **Deps / build**: Poetry (`pyproject.toml`).
 - **Tests**: `pytest` (see `[tool.pytest.ini_options]`; coverage threshold in `[tool.coverage.report]`).
 
-## Recent doc maintenance (2025-03)
+## Recent versions
 
-README was shortened: removed a large HTML-commented copy of legacy docs (wrong PyPI name and third-party repo links). Prefer the official JSON docs + `hyperhdr/client.py` for API detail.
+- **0.2.3** — `async_set_config`, `async_get_smoothing_config`, `async_update_smoothing_config`; legacy `async_set_smoothing` is time-only (HyperHDR v22 schema).
+- **0.2.2** — average color via `current-state`/`average-color`; stream auth failure handling.
+- **0.2.0** — WebSocket LED streaming module and extras.
+
+Prefer the official JSON docs + `hyperhdr/client.py` for API detail.
